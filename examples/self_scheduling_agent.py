@@ -32,11 +32,8 @@ def get_system_prompt() -> str:
 
 def get_time_update() -> str:
     """Get the current time information."""
-    now = datetime.now()
-    current_time = now.strftime("%Y-%m-%d %H:%M:%S")
-    timezone = time.tzname[time.daylight] if time.daylight else time.tzname[0]
-    
-    return f"[TIME UPDATE] Current time: {current_time} {timezone}"
+    now = datetime.now().astimezone()
+    return f"[TIME UPDATE] Current time: {now.isoformat()}"
 
 def create_agent(scheduler: AgentScheduler, thread_id: str = None):
     """Create an agent with self-scheduling capability."""
@@ -112,7 +109,6 @@ def main():
         
         # Start a conversation with initial time update
         messages = [
-            SystemMessage(content=get_system_prompt()),
             AIMessage(content=get_time_update()),
             HumanMessage(content="Hi! Could you do a single check-in at the next full minute? For example, if it's 2:45:30, check in once at 2:46:00.")
         ]
