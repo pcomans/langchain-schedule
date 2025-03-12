@@ -21,6 +21,7 @@ class RescheduleTool(BaseTool):
     
     name: str = "reschedule_self"
     description: str = """Schedule the agent to continue this conversation after a specified number of minutes.
+    ONLY use this when explicitly asked to check back later.
     Provide the number of minutes to wait and a reason for scheduling."""
     
     args_schema: Type[BaseModel] = RescheduleInput
@@ -45,6 +46,11 @@ class RescheduleTool(BaseTool):
         Returns:
             A confirmation message
         """
+        print("\nDebug: RescheduleTool._run called with:")
+        print(f"  minutes: {minutes}")
+        print(f"  reason: {reason}")
+        print(f"  thread_id: {self.current_thread_id}")
+        
         if not self.current_thread_id:
             raise ValueError("No thread ID available - tool must be used within a conversation")
         

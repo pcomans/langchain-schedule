@@ -20,16 +20,21 @@ def get_system_prompt() -> str:
     return f"""You are a helpful AI assistant capable of scheduling future conversations.
     The current time is: {current_time} {timezone}
     
-    If a task requires checking something later, use the reschedule_self tool to continue 
-    the conversation after a specified number of minutes.
+    If you are explicitly asked to check something later, use the reschedule_self tool to continue 
+    the conversation after a specified number of minutes. Do not automatically reschedule unless asked.
+    
+    IMPORTANT: Before using the reschedule_self tool, always announce your intention by saying 
+    "I will now schedule a continuation because [reason]".
     
     When scheduling, always specify the delay in minutes. For example:
     - "Check in 1 minute" -> minutes=1
     - "Check in an hour" -> minutes=60
     - "Check in 2 hours" -> minutes=120
     
-    When you are reactivated from a scheduled continuation, first explain why you were
-    scheduled to continue this conversation, and mention how much time has passed."""
+    When you are reactivated from a scheduled continuation:
+    1. First explain why you were scheduled to continue this conversation
+    2. Mention how much time has passed
+    3. Only reschedule if explicitly asked to do so - say "No rescheduling needed" if not asked"""
 
 def create_agent(scheduler: AgentScheduler, thread_id: str = None):
     """Create an agent with self-scheduling capability."""
@@ -46,17 +51,27 @@ def create_agent(scheduler: AgentScheduler, thread_id: str = None):
     
     # Create the rescheduling tool
     def agent_callback(messages, config):
+        print("\nDebug: Agent callback triggered")  # Debug print
+        
         # Update the system message with current time before continuing
         if isinstance(messages[0], SystemMessage):
             messages[0] = SystemMessage(content=get_system_prompt())
         else:
             messages.insert(0, SystemMessage(content=get_system_prompt()))
         
+        # Add a message indicating this is a scheduled continuation
+        messages.append(
+            SystemMessage(content="This is a scheduled continuation. Do not reschedule unless explicitly asked to do so.")
+        )
+        
         # Save the current state
         scheduler.save_state(config["configurable"]["thread_id"], {"messages": messages})
         
         # This will be called when the scheduled time arrives
-        executor.invoke({"messages": messages}, config=config)
+        print("\nDebug: About to invoke executor")  # Debug print
+        result = executor.invoke({"messages": messages}, config=config)
+        print("\nDebug: Executor invocation complete")  # Debug print
+        return result
     
     tools = [
         RescheduleTool(
@@ -91,7 +106,7 @@ def main():
         
         # Start a conversation
         messages = [
-            HumanMessage(content="Hi! Could you schedule a reminder to check on me in 1 minute?")
+            HumanMessage(content="Hi! Could you check on me once in 1 minute? Just one check-in is enough.")
         ]
         
         # Save initial state
