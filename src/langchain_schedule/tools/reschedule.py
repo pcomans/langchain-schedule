@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Optional, Type, Callable
 from datetime import datetime
 from dateutil.parser import parse as parse_date
 from pydantic import BaseModel, Field
@@ -27,23 +27,10 @@ class RescheduleTool(BaseTool):
     
     args_schema: Type[BaseModel] = RescheduleInput
     
-    def __init__(
-        self,
-        scheduler: AgentScheduler,
-        agent_callback: callable,
-        current_thread_id: Optional[str] = None
-    ):
-        """Initialize the tool with a scheduler and callback.
-        
-        Args:
-            scheduler: The AgentScheduler instance to use
-            agent_callback: The function to call to continue the conversation
-            current_thread_id: The current thread ID if in a conversation
-        """
-        super().__init__()
-        self.scheduler = scheduler
-        self.agent_callback = agent_callback
-        self.current_thread_id = current_thread_id
+    # Declare the fields properly
+    scheduler: AgentScheduler = Field(..., description="The scheduler instance to use")
+    agent_callback: Callable = Field(..., description="The function to call to continue the conversation")
+    current_thread_id: Optional[str] = Field(None, description="The current thread ID if in a conversation")
     
     def _parse_time(self, time_str: str) -> datetime:
         """Parse a time string into a datetime object."""

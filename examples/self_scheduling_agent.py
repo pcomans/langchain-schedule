@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_openai_functions_agent
@@ -5,6 +6,9 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from langchain_schedule.scheduler import AgentScheduler
 from langchain_schedule.tools.reschedule import RescheduleTool
+
+# Load environment variables from .env
+load_dotenv()
 
 def create_agent(scheduler: AgentScheduler, thread_id: str = None):
     """Create an agent with self-scheduling capability."""
