@@ -59,9 +59,9 @@ def create_agent(scheduler: AgentScheduler, thread_id: str = None):
         else:
             messages.insert(0, SystemMessage(content=get_system_prompt()))
         
-        # Add a message indicating this is a scheduled continuation
+        # Add context about this being a continuation
         messages.append(
-            SystemMessage(content="This is a scheduled continuation. Do not reschedule unless explicitly asked to do so.")
+            HumanMessage(content="This is your scheduled check-in. Please respond to how I'm doing, but do NOT schedule another check-in unless I explicitly ask for one.")
         )
         
         # Save the current state
