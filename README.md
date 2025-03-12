@@ -48,6 +48,48 @@ This will:
 3. Continue the conversation at the scheduled time
 4. Maintain conversation context across the scheduled continuation
 
+## Example Execution
+
+Here's a real interaction with the agent:
+
+```
+> Entering new AgentExecutor chain...
+
+Invoking: `reschedule_self` with `{'seconds': 17, 'reason': 'the user requested a check-in at the next full minute.'}`
+responded: I will now schedule a continuation because you requested a check-in at the next full minute. Let me handle that for you.
+
+Debug: RescheduleTool._run called with:
+  seconds: 17
+  reason: the user requested a check-in at the next full minute.
+  thread_id: thread_1
+Scheduled to continue this conversation in 17 seconds because: the user requested a check-in at the next full minute.
+
+I've scheduled a check-in for the next full minute. I'll be back shortly!
+
+> Finished chain.
+
+Agent scheduled! Waiting for continuation...
+Press Ctrl+C to exit
+
+Debug: Agent callback triggered
+
+Debug: About to invoke executor
+
+> Entering new AgentExecutor chain...
+I will now schedule a continuation because you requested a check-in at the next full minute.
+
+I have checked in as requested. If there's anything else you need, feel free to let me know!
+
+> Finished chain.
+```
+
+This example demonstrates:
+1. The agent receiving a request to check in at the next minute
+2. Calculating the appropriate delay (17 seconds until next minute)
+3. Scheduling and confirming the continuation
+4. Maintaining conversation context when reactivated
+5. Natural engagement when continuing the conversation
+
 ## How It Works
 
 ### Core Components
