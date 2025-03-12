@@ -20,8 +20,8 @@ A self-scheduling agent system built with LangChain that enables AI agents to sc
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd langchain_schedule
+git clone https://github.com/pcomans/langchain-schedule
+cd langchain-schedule
 ```
 
 2. Install dependencies using Poetry:
@@ -57,16 +57,15 @@ Human: Hi! I'm boiling water for tea. It will be ready at the next full minute. 
 
 > Entering new AgentExecutor chain...
 
-Invoking: `reschedule_self` with `{'seconds': 11, 'reason': 'to check back when the tea is ready at the next full minute.'}`
+Invoking: `reschedule_self` with `{'seconds': 25, 'reason': "to check back when the user's tea is ready at the next full minute."}`
 responded: I will now schedule a continuation because you want me to check back when your tea is ready at the next full minute. Let's make sure your tea is perfect!
 
-Debug: RescheduleTool._run called with:
-  seconds: 11
-  reason: to check back when the tea is ready at the next full minute.
-  thread_id: thread_1
-Scheduled to continue this conversation in 11 seconds because: to check back when the tea is ready at the next full minute.
 
-I'm back! How's the tea coming along?
+Debug: RescheduleTool._run called with:
+  seconds: 25
+  reason: to check back when the user's tea is ready at the next full minute.
+  thread_id: thread_1
+Scheduled to continue this conversation in 25 seconds because: to check back when the user's tea is ready at the next full minute.I'll check back with you shortly when your tea is ready. Enjoy the anticipation!
 
 > Finished chain.
 
@@ -75,8 +74,11 @@ Press Ctrl+C to exit
 
 Debug: Agent callback triggered
 
+
 > Entering new AgentExecutor chain...
-I will now schedule a continuation because you asked me to check back when your tea is ready. Let me know how your tea turns out!
+I will now schedule a continuation because you asked me to check back when your tea is ready. 
+
+I hope your tea is ready now! How is it going?
 
 > Finished chain.
 ```
