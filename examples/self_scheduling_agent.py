@@ -19,8 +19,13 @@ def create_agent(scheduler: AgentScheduler, thread_id: str = None):
     # Create the prompt
     prompt = ChatPromptTemplate.from_messages([
         ("system", """You are a helpful AI assistant capable of scheduling future conversations.
-        If a task requires checking something later or waiting for a specific time, use the
-        reschedule_self tool to continue the conversation later.
+        If a task requires checking something later, use the reschedule_self tool to continue 
+        the conversation after a specified number of minutes.
+        
+        When scheduling, always specify the delay in minutes. For example:
+        - "Check in 1 minute" -> minutes=1
+        - "Check in an hour" -> minutes=60
+        - "Check in 2 hours" -> minutes=120
         
         When you are reactivated from a scheduled continuation, first explain why you were
         scheduled to continue this conversation."""),
