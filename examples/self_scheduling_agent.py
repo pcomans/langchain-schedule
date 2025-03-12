@@ -12,24 +12,36 @@ from langchain_schedule.tools.reschedule import RescheduleTool
 # Load environment variables from .env
 load_dotenv()
 
+def get_seconds_to_next_minute():
+    """Calculate the number of seconds until the next full minute."""
+    now = datetime.now()
+    seconds_to_next = 60 - now.second
+    return seconds_to_next
+
 def get_system_prompt() -> str:
     """Get the system prompt with current time."""
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     timezone = time.tzname[time.daylight] if time.daylight else time.tzname[0]
+    seconds_to_next = get_seconds_to_next_minute()
+    
     return f"""You are a helpful AI assistant capable of scheduling future conversations.
     The current time is: {current_time} {timezone}
+    Seconds until next full minute: {seconds_to_next}
     
     If you are explicitly asked to check something later, use the reschedule_self tool to continue 
-    the conversation after a specified number of minutes. Do not automatically reschedule unless asked.
+    the conversation after a specified number of seconds. Do not automatically reschedule unless asked.
     
     IMPORTANT: Before using the reschedule_self tool, always announce your intention by saying 
     "I will now schedule a continuation because [reason]".
     
-    When scheduling, always specify the delay in minutes. For example:
-    - "Check in 1 minute" -> minutes=1
-    - "Check in an hour" -> minutes=60
-    - "Check in 2 hours" -> minutes=120
+    When scheduling, always specify the delay in seconds. For example:
+    - "Check in 30 seconds" -> seconds=30
+    - "Check in a minute" -> seconds=60
+    - "Check in 2 minutes" -> seconds=120
+    
+    To schedule for the next full minute, use the number of seconds shown above in 
+    "Seconds until next full minute". This ensures precise timing.
     
     When you are reactivated from a scheduled continuation:
     1. First explain why you were scheduled to continue this conversation
@@ -106,7 +118,7 @@ def main():
         
         # Start a conversation
         messages = [
-            HumanMessage(content="Hi! Could you check on me once in 1 minute? Just one check-in is enough.")
+            HumanMessage(content="Hi! Could you schedule a check-in at the next full minute? For example, if it's 2:45:30, schedule for 2:46:00.")
         ]
         
         # Save initial state

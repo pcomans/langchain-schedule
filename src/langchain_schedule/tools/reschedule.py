@@ -7,9 +7,9 @@ from ..scheduler import AgentScheduler
 
 class RescheduleInput(BaseModel):
     """Input for the reschedule tool."""
-    minutes: int = Field(
+    seconds: int = Field(
         ...,
-        description="Number of minutes to wait before continuing the conversation"
+        description="Number of seconds to wait before continuing the conversation"
     )
     reason: str = Field(
         ...,
@@ -20,9 +20,9 @@ class RescheduleTool(BaseTool):
     """Tool for scheduling future continuations of the current conversation."""
     
     name: str = "reschedule_self"
-    description: str = """Schedule the agent to continue this conversation after a specified number of minutes.
+    description: str = """Schedule the agent to continue this conversation after a specified number of seconds.
     ONLY use this when explicitly asked to check back later.
-    Provide the number of minutes to wait and a reason for scheduling."""
+    Provide the number of seconds to wait and a reason for scheduling."""
     
     args_schema: Type[BaseModel] = RescheduleInput
     
@@ -33,21 +33,21 @@ class RescheduleTool(BaseTool):
     
     def _run(
         self,
-        minutes: int,
+        seconds: int,
         reason: str,
         **kwargs
     ) -> str:
         """Schedule a continuation of the current conversation.
         
         Args:
-            minutes: Number of minutes to wait
+            seconds: Number of seconds to wait
             reason: Why the continuation is being scheduled
             
         Returns:
             A confirmation message
         """
         print("\nDebug: RescheduleTool._run called with:")
-        print(f"  minutes: {minutes}")
+        print(f"  seconds: {seconds}")
         print(f"  reason: {reason}")
         print(f"  thread_id: {self.current_thread_id}")
         
@@ -55,7 +55,7 @@ class RescheduleTool(BaseTool):
             raise ValueError("No thread ID available - tool must be used within a conversation")
         
         try:
-            run_date = datetime.now() + timedelta(minutes=minutes)
+            run_date = datetime.now() + timedelta(seconds=seconds)
             
             # Schedule the continuation
             self.scheduler.schedule_continuation(
@@ -65,11 +65,11 @@ class RescheduleTool(BaseTool):
                 context={"reschedule_reason": reason}
             )
             
-            return f"Scheduled to continue this conversation in {minutes} minutes because: {reason}"
+            return f"Scheduled to continue this conversation in {seconds} seconds because: {reason}"
             
         except ValueError as e:
             return f"Error scheduling continuation: {str(e)}"
     
-    async def _arun(self, minutes: int, reason: str, **kwargs) -> str:
+    async def _arun(self, seconds: int, reason: str, **kwargs) -> str:
         """Async version of _run."""
-        return self._run(minutes, reason, **kwargs) 
+        return self._run(seconds, reason, **kwargs) 
