@@ -2,7 +2,6 @@ from typing import Any, Dict, Optional
 from apscheduler.schedulers.background import BackgroundScheduler
 from langgraph.store.memory import InMemoryStore
 from datetime import datetime
-import threading
 
 class AgentScheduler:
     """Manages scheduling and thread management for self-scheduling agents."""
@@ -18,24 +17,11 @@ class AgentScheduler:
         
         # Thread management
         self.thread_counter = 0
-        self._stop_event = threading.Event()
     
     def generate_thread_id(self) -> str:
         """Generate a unique thread ID for a new conversation."""
         self.thread_counter += 1
         return f"thread_{self.thread_counter}"
-    
-    def wait(self):
-        """Wait until stop is called."""
-        try:
-            while not self._stop_event.is_set():
-                self._stop_event.wait(1)  # Wait for 1 second between checks
-        except KeyboardInterrupt:
-            self._stop_event.set()
-    
-    def stop(self):
-        """Signal to stop waiting."""
-        self._stop_event.set()
     
     def schedule_continuation(
         self,
@@ -95,5 +81,4 @@ class AgentScheduler:
     
     def shutdown(self):
         """Shutdown the scheduler properly."""
-        self.stop()
         self.scheduler.shutdown() 

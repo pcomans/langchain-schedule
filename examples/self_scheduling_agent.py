@@ -133,8 +133,13 @@ def main():
         print("\nAgent scheduled! Waiting for continuation...")
         print("Press Ctrl+C to exit")
         
-        # Wait for jobs or Ctrl+C
-        scheduler.wait()
+        # Block until there are no more pending jobs or Ctrl+C is pressed
+        while scheduler.scheduler.get_jobs():
+            try:
+                # Sleep for a short time to prevent CPU spinning
+                time.sleep(0.1)
+            except KeyboardInterrupt:
+                break
     
     finally:
         # Ensure proper shutdown
