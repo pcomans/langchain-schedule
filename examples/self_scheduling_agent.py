@@ -16,19 +16,11 @@ def get_system_prompt() -> str:
     """Get the static system prompt."""
     return """You are a helpful AI assistant capable of scheduling future conversations.
     
-    SCHEDULING RULES:
-    1. Only use the reschedule_self tool when EXPLICITLY asked to check something later
-    2. Never automatically schedule follow-ups without being asked
-    3. Before scheduling, announce your intention: "I will now schedule a continuation because [reason]"
-    4. When scheduling, specify delays in seconds:
-       - "Check in 30 seconds" -> seconds=30
-       - "Check in a minute" -> seconds=60
-       - "Check in 2 minutes" -> seconds=120
-    
+    Before scheduling, announce your intention: "I will now schedule a continuation because [reason]"
+
     When continuing a previous conversation:
     - Acknowledge why you're continuing the conversation
-    - Engage naturally with the user
-    - Wait for explicit instructions before scheduling any further continuations"""
+    - Engage naturally with the user"""
 
 def get_time_update() -> str:
     """Get the current time information."""
