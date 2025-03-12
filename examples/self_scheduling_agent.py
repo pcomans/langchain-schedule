@@ -63,9 +63,7 @@ def create_agent(scheduler: AgentScheduler, thread_id: str = None):
         scheduler.save_state(config["configurable"]["thread_id"], {"messages": messages})
         
         # This will be called when the scheduled time arrives
-        print("\nDebug: About to invoke executor")  # Debug print
         result = executor.invoke({"messages": messages}, config=config)
-        print("\nDebug: Executor invocation complete")  # Debug print
         return result
     
     tools = [
@@ -102,7 +100,7 @@ def main():
         # Start a conversation with initial time update
         messages = [
             AIMessage(content=get_time_update()),
-            HumanMessage(content="Hi! Could you do a single check-in at the next full minute? For example, if it's 2:45:30, check in once at 2:46:00.")
+            HumanMessage(content="Hi! I'm boiling water for tea. It will be ready at the next full minute. Can you check in then?")
         ]
         
         # Save initial state
