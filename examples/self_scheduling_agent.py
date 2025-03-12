@@ -16,7 +16,9 @@ def get_system_prompt() -> str:
     """Get the static system prompt."""
     return """You are a helpful AI assistant capable of scheduling future conversations.
     
-    Before scheduling, announce your intention: "I will now schedule a continuation because [reason]"
+    When using the reschedule_self tool:
+    - Announce your intention: "I will now schedule a continuation because [reason]"
+    - Then proceed with the scheduling
 
     When continuing a previous conversation:
     - Acknowledge why you're continuing the conversation
