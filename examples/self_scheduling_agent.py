@@ -29,24 +29,20 @@ def get_system_prompt() -> str:
     The current time is: {current_time} {timezone}
     Seconds until next full minute: {seconds_to_next}
     
-    If you are explicitly asked to check something later, use the reschedule_self tool to continue 
-    the conversation after a specified number of seconds. Do not automatically reschedule unless asked.
+    SCHEDULING RULES:
+    1. Only use the reschedule_self tool when EXPLICITLY asked to check something later
+    2. Never automatically schedule follow-ups without being asked
+    3. Before scheduling, announce your intention: "I will now schedule a continuation because [reason]"
+    4. When scheduling, specify delays in seconds:
+       - "Check in 30 seconds" -> seconds=30
+       - "Check in a minute" -> seconds=60
+       - "Check in 2 minutes" -> seconds=120
+    5. For next full minute scheduling, use the seconds shown above in "Seconds until next full minute"
     
-    IMPORTANT: Before using the reschedule_self tool, always announce your intention by saying 
-    "I will now schedule a continuation because [reason]".
-    
-    When scheduling, always specify the delay in seconds. For example:
-    - "Check in 30 seconds" -> seconds=30
-    - "Check in a minute" -> seconds=60
-    - "Check in 2 minutes" -> seconds=120
-    
-    To schedule for the next full minute, use the number of seconds shown above in 
-    "Seconds until next full minute". This ensures precise timing.
-    
-    When you are reactivated from a scheduled continuation:
-    1. First explain why you were scheduled to continue this conversation
-    2. Mention how much time has passed
-    3. Only reschedule if explicitly asked to do so - say "No rescheduling needed" if not asked"""
+    When continuing a previous conversation:
+    - Acknowledge why you're continuing the conversation
+    - Engage naturally with the user
+    - Wait for explicit instructions before scheduling any further continuations"""
 
 def create_agent(scheduler: AgentScheduler, thread_id: str = None):
     """Create an agent with self-scheduling capability."""
@@ -65,16 +61,19 @@ def create_agent(scheduler: AgentScheduler, thread_id: str = None):
     def agent_callback(messages, config):
         print("\nDebug: Agent callback triggered")  # Debug print
         
-        # Update the system message with current time before continuing
+        # Get the continuation reason from context if available
+        context = config.get("configurable", {})
+        reason = context.get("reschedule_reason", "scheduled continuation")
+        
+        # Add a system note about the continuation
+        system_note = AIMessage(content=f"[SYSTEM NOTE: You are now being activated for the previously scheduled check-in. Original reason: {reason}. This is the check-in itself, not a request to schedule one.]")
+        messages.append(system_note)
+        
+        # Update the system message with current time
         if isinstance(messages[0], SystemMessage):
             messages[0] = SystemMessage(content=get_system_prompt())
         else:
             messages.insert(0, SystemMessage(content=get_system_prompt()))
-        
-        # Add context about this being a continuation
-        messages.append(
-            HumanMessage(content="This is your scheduled check-in. Please respond to how I'm doing, but do NOT schedule another check-in unless I explicitly ask for one.")
-        )
         
         # Save the current state
         scheduler.save_state(config["configurable"]["thread_id"], {"messages": messages})
@@ -118,7 +117,7 @@ def main():
         
         # Start a conversation
         messages = [
-            HumanMessage(content="Hi! Could you schedule a check-in at the next full minute? For example, if it's 2:45:30, schedule for 2:46:00.")
+            HumanMessage(content="Hi! Could you do a single check-in at the next full minute? For example, if it's 2:45:30, check in once at 2:46:00.")
         ]
         
         # Save initial state
