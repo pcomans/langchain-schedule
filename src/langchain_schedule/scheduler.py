@@ -1,8 +1,8 @@
 from typing import Any, Dict, Optional
 from apscheduler.schedulers.background import BackgroundScheduler
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph import StateGraph, MessagesState
-from langchain_core.messages import HumanMessage, AIMessage
+from langgraph.store.memory import InMemoryStore
+from datetime import datetime
+import threading
 
 class AgentScheduler:
     """Manages scheduling and thread management for self-scheduling agents."""
@@ -13,17 +13,29 @@ class AgentScheduler:
         self.scheduler = BackgroundScheduler()
         self.scheduler.start()
         
-        # Initialize LangGraph components
-        self.workflow = StateGraph(state_schema=MessagesState)
-        self.memory = MemorySaver()
+        # Initialize memory store
+        self.memory = InMemoryStore()
         
         # Thread management
         self.thread_counter = 0
-        
+        self._stop_event = threading.Event()
+    
     def generate_thread_id(self) -> str:
         """Generate a unique thread ID for a new conversation."""
         self.thread_counter += 1
         return f"thread_{self.thread_counter}"
+    
+    def wait(self):
+        """Wait until stop is called."""
+        try:
+            while not self._stop_event.is_set():
+                self._stop_event.wait(1)  # Wait for 1 second between checks
+        except KeyboardInterrupt:
+            self._stop_event.set()
+    
+    def stop(self):
+        """Signal to stop waiting."""
+        self._stop_event.set()
     
     def schedule_continuation(
         self,
@@ -41,20 +53,26 @@ class AgentScheduler:
             context: Additional context to pass to the agent
         """
         def _continue_conversation():
-            # Get the conversation state
-            state = self.memory.get(thread_id)
-            if state is None:
-                raise ValueError(f"No state found for thread {thread_id}")
-            
-            # Add any additional context
-            if context:
-                state.update(context)
-            
-            # Continue the conversation
-            agent_callback(
-                messages=state["messages"],
-                config={"configurable": {"thread_id": thread_id}}
-            )
+            try:
+                # Get the conversation state
+                namespace = (thread_id, "conversation")
+                memories = self.memory.search(namespace)
+                if not memories:
+                    raise ValueError(f"No state found for thread {thread_id}")
+                
+                state = memories[-1].value
+                
+                # Add any additional context
+                if context:
+                    state.update(context)
+                
+                # Continue the conversation
+                agent_callback(
+                    messages=state.get("messages", []),
+                    config={"configurable": {"thread_id": thread_id}}
+                )
+            except Exception as e:
+                print(f"Error in continuation: {str(e)}")
         
         # Schedule the continuation
         self.scheduler.add_job(
@@ -66,12 +84,16 @@ class AgentScheduler:
     
     def get_state(self, thread_id: str) -> Optional[Dict[str, Any]]:
         """Get the current state for a thread ID."""
-        return self.memory.get(thread_id)
+        namespace = (thread_id, "conversation")
+        memories = self.memory.search(namespace)
+        return memories[-1].value if memories else None
     
     def save_state(self, thread_id: str, state: Dict[str, Any]) -> None:
         """Save state for a thread ID."""
-        self.memory.put(thread_id, state)
+        namespace = (thread_id, "conversation")
+        self.memory.put(namespace, datetime.now().isoformat(), state)
     
     def shutdown(self):
         """Shutdown the scheduler properly."""
+        self.stop()
         self.scheduler.shutdown() 

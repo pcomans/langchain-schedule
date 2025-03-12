@@ -51,6 +51,10 @@ def create_agent(scheduler: AgentScheduler, thread_id: str = None):
             messages[0] = SystemMessage(content=get_system_prompt())
         else:
             messages.insert(0, SystemMessage(content=get_system_prompt()))
+        
+        # Save the current state
+        scheduler.save_state(config["configurable"]["thread_id"], {"messages": messages})
+        
         # This will be called when the scheduled time arrives
         executor.invoke({"messages": messages}, config=config)
     
@@ -90,6 +94,9 @@ def main():
             HumanMessage(content="Hi! Could you schedule a reminder to check on me in 1 minute?")
         ]
         
+        # Save initial state
+        scheduler.save_state(thread_id, {"messages": messages})
+        
         # Run the agent
         response = agent.invoke(
             {"messages": messages},
@@ -99,12 +106,8 @@ def main():
         print("\nAgent scheduled! Waiting for continuation...")
         print("Press Ctrl+C to exit")
         
-        # Keep the script running
-        try:
-            while True:
-                pass
-        except KeyboardInterrupt:
-            print("\nShutting down...")
+        # Wait for jobs or Ctrl+C
+        scheduler.wait()
     
     finally:
         # Ensure proper shutdown
